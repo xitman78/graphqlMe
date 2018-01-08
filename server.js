@@ -8,7 +8,7 @@ const { makeExecutableSchema } = require('graphql-tools');
 
 const typeDefs = [`
 type Query {
-  hello: String
+  hello(who: String!): String
 }
 
 schema {
@@ -17,8 +17,9 @@ schema {
 
 const resolvers = {
   Query: {
-    hello(root) {
-      return 'world';
+    hello(root, second) {
+        console.log('second', second);
+      return ['World', second.who, '!'].join(' ');
     }
   }
 };
