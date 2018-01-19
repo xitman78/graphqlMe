@@ -28,6 +28,7 @@ const { makeExecutableSchema } = require('graphql-tools');
 const typeDefs = [`
 
 type User {
+  id: String
   name: String
   email: String
 }
@@ -37,8 +38,17 @@ type Query {
   users: [User]
 }
 
+type Mutation {
+  user: UserMutation
+}
+
+type UserMutation {
+  createUser(name: String!, email: String!): User
+}
+
 schema {
   query: Query
+  mutation: Mutation
 }`];
 
 const resolvers = {
@@ -48,21 +58,38 @@ const resolvers = {
     },
     users(root, args) {
         return User.find({}).exec().then(users => {
-          console.log("Fetched users", users);
           return users;
         });
     },
   },
   User: {
+    id(user) {
+      return user._id.toString();
+    },
     name(user) {
-      console.log("name resolver", arguments);
       return user.name;
     },
     email(user) {
       return user.email;
     },
-
   },
+
+  Mutation: {
+    user() {
+      return {};
+    }
+  },
+
+  UserMutation: {
+      createUser(root, args) {
+        let user = new User({name: args.name, email: args.email});
+        return user.save().then(_user => {
+          console.log("Inserted user", _user);
+          return _user;
+        });
+      },
+  },
+
 };
 
 const myGraphQLSchema = makeExecutableSchema({typeDefs, resolvers});
