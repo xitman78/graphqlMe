@@ -12,12 +12,12 @@ mongoose.connect("mongodb://localhost/gql-test");
 var db = mongoose.connection;
 db.on("error", console.error.bind(console, "connection error:"));
 db.once("open", function() {
-    console.log("DB connected");
+  console.log("DB connected");
 });
 
 var userSchema = mongoose.Schema({
-    name: String,
-    email: String,
+  name: String,
+  email: String,
 });
 
 userSchema.index({ name: 1, email: 1 });
@@ -55,57 +55,59 @@ type UserMutation {
 schema {
   query: Query
   mutation: Mutation
-}`];
+}
+
+`];
 
 const resolvers = {
 
-    Query: {
-        hello(root, args) {
-            return ["Hello", args.who, "!"].join(" ");
-        },
-        user() {
-            return {};
-        },
+  Query: {
+    hello(root, args) {
+      return ["Hello", args.who, "!"].join(" ");
     },
+    user() {
+      return {};
+    },
+  },
 
-    UserQuery: {
-        list(root, args) {
-            return User.find({}).exec().then(users => {
-                return users;
-            });
-        },
-        getById(root, args) {
-            return User.findOne({_id: ObjectID(args.id)}).exec();
-        },
+  UserQuery: {
+    list(root, args) {
+      return User.find({}).exec().then(users => {
+        return users;
+      });
     },
+    getById(root, args) {
+      return User.findOne({_id: ObjectID(args.id)}).exec();
+    },
+  },
 
-    User: {
-        id(user) {
-            return user._id.toString();
-        },
-        name(user) {
-            return user.name;
-        },
-        email(user) {
-            return user.email;
-        },
+  User: {
+    id(user) {
+      return user._id.toString();
     },
+    name(user) {
+      return user.name;
+    },
+    email(user) {
+      return user.email;
+    },
+  },
 
-    Mutation: {
-        user() {
-            return {};
-        }
-    },
+  Mutation: {
+    user() {
+      return {};
+    }
+  },
 
-    UserMutation: {
-        createUser(root, args) {
-            let user = new User({name: args.name, email: args.email});
-            return user.save().then(_user => {
-                console.log("Inserted user", _user);
-                return _user;
-            });
-        },
+  UserMutation: {
+    createUser(root, args) {
+      let user = new User({name: args.name, email: args.email});
+      return user.save().then(_user => {
+        console.log("Inserted user", _user);
+        return _user;
+      });
     },
+  },
 
 };
 
@@ -121,11 +123,11 @@ app.use(koaBody());
 router.post("/graphql", graphqlKoa({ schema: myGraphQLSchema }));
 router.get("/graphql", graphqlKoa({ schema: myGraphQLSchema }));
 router.get("/graphiql", graphiqlKoa({
-    endpointURL: "/graphql" // a POST endpoint that GraphiQL will make the actual requests to
+  endpointURL: "/graphql" // a POST endpoint that GraphiQL will make the actual requests to
 }));
 
 app.use(router.routes());
 app.use(router.allowedMethods());
 app.listen(PORT, () => {
-    console.log("Listeing on port " + PORT);
+  console.log("Listeing on port " + PORT);
 });
