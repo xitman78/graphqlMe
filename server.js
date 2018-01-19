@@ -5,6 +5,7 @@ const koaBody =require ('koa-bodyparser');
 const graphqlKoa = require('apollo-server-koa').graphqlKoa;
 const graphiqlKoa = require('apollo-server-koa').graphiqlKoa;
 const mongoose = require('mongoose');
+const ObjectID = require('mongoose').Types.ObjectId
 
 mongoose.connect('mongodb://localhost/gql-test');
 
@@ -33,9 +34,14 @@ type User {
   email: String
 }
 
+type UserQuery {
+  list: [User]
+  getById(id: String!): User
+}
+
 type Query {
   hello(who: String!): String
-  users: [User]
+  user: UserQuery
 }
 
 type Mutation {
@@ -52,16 +58,27 @@ schema {
 }`];
 
 const resolvers = {
+
   Query: {
     hello(root, args) {
       return ['Hello', args.who, '!'].join(' ');
     },
-    users(root, args) {
-        return User.find({}).exec().then(users => {
-          return users;
-        });
+    user() {
+      return {}
     },
   },
+
+  UserQuery: {
+    list(root, args) {
+      return User.find({}).exec().then(users => {
+        return users;
+      });
+    },
+    getById(root, args) {
+      return User.findOne({_id: ObjectID(args.id)}).exec();
+    },
+  },
+
   User: {
     id(user) {
       return user._id.toString();
