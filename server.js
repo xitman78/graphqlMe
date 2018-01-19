@@ -1,30 +1,30 @@
 
-const koa = require('koa'); // koa@2
-const koaRouter = require('koa-router');
-const koaBody =require ('koa-bodyparser');
-const graphqlKoa = require('apollo-server-koa').graphqlKoa;
-const graphiqlKoa = require('apollo-server-koa').graphiqlKoa;
-const mongoose = require('mongoose');
-const ObjectID = require('mongoose').Types.ObjectId
+const koa = require("koa"); // koa@2
+const koaRouter = require("koa-router");
+const koaBody =require ("koa-bodyparser");
+const graphqlKoa = require("apollo-server-koa").graphqlKoa;
+const graphiqlKoa = require("apollo-server-koa").graphiqlKoa;
+const mongoose = require("mongoose");
+const ObjectID = require("mongoose").Types.ObjectId;
 
-mongoose.connect('mongodb://localhost/gql-test');
+mongoose.connect("mongodb://localhost/gql-test");
 
 var db = mongoose.connection;
-db.on('error', console.error.bind(console, 'connection error:'));
-db.once('open', function() {
-  console.log("DB connected");
+db.on("error", console.error.bind(console, "connection error:"));
+db.once("open", function() {
+    console.log("DB connected");
 });
 
 var userSchema = mongoose.Schema({
-  name: String,
-  email: String,
+    name: String,
+    email: String,
 });
 
-userSchema.index({ name: 1, email: 1 })
+userSchema.index({ name: 1, email: 1 });
 
-var User = mongoose.model('User', userSchema);
+var User = mongoose.model("User", userSchema);
 
-const { makeExecutableSchema } = require('graphql-tools');
+const { makeExecutableSchema } = require("graphql-tools");
 
 const typeDefs = [`
 
@@ -59,53 +59,53 @@ schema {
 
 const resolvers = {
 
-  Query: {
-    hello(root, args) {
-      return ['Hello', args.who, '!'].join(' ');
+    Query: {
+        hello(root, args) {
+            return ["Hello", args.who, "!"].join(" ");
+        },
+        user() {
+            return {};
+        },
     },
-    user() {
-      return {}
-    },
-  },
 
-  UserQuery: {
-    list(root, args) {
-      return User.find({}).exec().then(users => {
-        return users;
-      });
+    UserQuery: {
+        list(root, args) {
+            return User.find({}).exec().then(users => {
+                return users;
+            });
+        },
+        getById(root, args) {
+            return User.findOne({_id: ObjectID(args.id)}).exec();
+        },
     },
-    getById(root, args) {
-      return User.findOne({_id: ObjectID(args.id)}).exec();
-    },
-  },
 
-  User: {
-    id(user) {
-      return user._id.toString();
+    User: {
+        id(user) {
+            return user._id.toString();
+        },
+        name(user) {
+            return user.name;
+        },
+        email(user) {
+            return user.email;
+        },
     },
-    name(user) {
-      return user.name;
-    },
-    email(user) {
-      return user.email;
-    },
-  },
 
-  Mutation: {
-    user() {
-      return {};
-    }
-  },
+    Mutation: {
+        user() {
+            return {};
+        }
+    },
 
-  UserMutation: {
-      createUser(root, args) {
-        let user = new User({name: args.name, email: args.email});
-        return user.save().then(_user => {
-          console.log("Inserted user", _user);
-          return _user;
-        });
-      },
-  },
+    UserMutation: {
+        createUser(root, args) {
+            let user = new User({name: args.name, email: args.email});
+            return user.save().then(_user => {
+                console.log("Inserted user", _user);
+                return _user;
+            });
+        },
+    },
 
 };
 
@@ -118,14 +118,14 @@ const PORT = 3000;
 // koaBody is needed just for POST.
 app.use(koaBody());
 
-router.post('/graphql', graphqlKoa({ schema: myGraphQLSchema }));
-router.get('/graphql', graphqlKoa({ schema: myGraphQLSchema }));
-router.get('/graphiql', graphiqlKoa({
-    endpointURL: '/graphql' // a POST endpoint that GraphiQL will make the actual requests to
+router.post("/graphql", graphqlKoa({ schema: myGraphQLSchema }));
+router.get("/graphql", graphqlKoa({ schema: myGraphQLSchema }));
+router.get("/graphiql", graphiqlKoa({
+    endpointURL: "/graphql" // a POST endpoint that GraphiQL will make the actual requests to
 }));
 
 app.use(router.routes());
 app.use(router.allowedMethods());
 app.listen(PORT, () => {
-  console.log("Listeing on port " + PORT);
+    console.log("Listeing on port " + PORT);
 });
