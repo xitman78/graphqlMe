@@ -1,12 +1,13 @@
 {
-  "name": "graphqlMe",
-  "version": "1.0.0",
+  "name": "graphqlme",
+  "version": "0.0.3",
   "description": "",
-  "main": "index.js",
+  "main": "src/server.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
     "flow": "flow",
-    "dev": "nodemon server.js"
+    "start": "node ./src/server.js",
+    "dev": "nodemon ./src/server.js"
   },
   "keywords": [],
   "author": "",
