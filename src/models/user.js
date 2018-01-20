@@ -6,7 +6,7 @@ const userSchema = mongoose.Schema({
   email: String,
 });
 
-userSchema.index({ name: 1});
+userSchema.index({ name: 1}).index({email: 1});
 
 const User = mongoose.model("User", userSchema);
 
