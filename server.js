@@ -5,7 +5,9 @@ const koaBody =require ("koa-bodyparser");
 const graphqlKoa = require("apollo-server-koa").graphqlKoa;
 const graphiqlKoa = require("apollo-server-koa").graphiqlKoa;
 const mongoose = require("mongoose");
-const ObjectID = require("mongoose").Types.ObjectId;
+const buildDataloaders = require("./src/dataloader");
+
+const User = require("./schemes/user");
 
 mongoose.connect("mongodb://localhost/gql-test");
 
@@ -14,15 +16,6 @@ db.on("error", console.error.bind(console, "connection error:"));
 db.once("open", function() {
   console.log("DB connected");
 });
-
-var userSchema = mongoose.Schema({
-  name: String,
-  email: String,
-});
-
-userSchema.index({ name: 1, email: 1 });
-
-var User = mongoose.model("User", userSchema);
 
 const { makeExecutableSchema } = require("graphql-tools");
 
@@ -76,8 +69,8 @@ const resolvers = {
         return users;
       });
     },
-    getById(root, args) {
-      return User.findOne({_id: ObjectID(args.id)}).exec();
+    getById(root, args, context) {
+      return context.dataloaders.userLoader.load(args.id);
     },
   },
 
@@ -117,11 +110,22 @@ const app = new koa();
 const router = new koaRouter();
 const PORT = 3000;
 
-// koaBody is needed just for POST.
+
 app.use(koaBody());
 
-router.post("/graphql", graphqlKoa({ schema: myGraphQLSchema }));
-router.get("/graphql", graphqlKoa({ schema: myGraphQLSchema }));
+const gqlScheme = graphqlKoa(req => {
+  console.log("-------", req);
+  return {
+    schema: myGraphQLSchema,
+    context: {
+      dataloaders: buildDataloaders(),
+    },
+  };
+});
+
+// koaBody is needed just for POST.
+router.post("/graphql", gqlScheme);
+router.get("/graphql", gqlScheme);
 router.get("/graphiql", graphiqlKoa({
   endpointURL: "/graphql" // a POST endpoint that GraphiQL will make the actual requests to
 }));
