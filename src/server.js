@@ -6,6 +6,7 @@ const graphqlKoa = require("apollo-server-koa").graphqlKoa;
 const graphiqlKoa = require("apollo-server-koa").graphiqlKoa;
 const mongoose = require("mongoose");
 const buildDataloaders = require("./dataloader");
+const cors = require("koa-cors");
 
 const typeDefs = require("./graphql/typedefs");
 const resolvers = require("./graphql/resolvers");
@@ -24,8 +25,9 @@ const myGraphQLSchema = makeExecutableSchema({typeDefs, resolvers});
 
 const app = new koa();
 const router = new koaRouter();
-const PORT = 3000;
+const PORT = 3030;
 
+app.use(cors());
 app.use(koaBody());
 
 const gqlScheme = graphqlKoa(req => {
