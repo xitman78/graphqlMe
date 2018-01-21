@@ -6,7 +6,7 @@ const userSchema = mongoose.Schema({
   email: String,
 });
 
-userSchema.index({ name: 1}).index({email: 1});
+userSchema.index({ name: 1}).index({email: 1}, { unique: true });
 
 const User = mongoose.model("User", userSchema);
 
@@ -16,6 +16,11 @@ User.batchFetch = function(keys) {
 
 User.fetchAll = function() {
   return this.find({}).exec();
+};
+
+User.createNew = function(args) {
+  let user = new User({name: args.name, email: args.email});
+  return user.save();
 };
 
 module.exports = User;

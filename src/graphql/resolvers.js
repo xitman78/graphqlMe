@@ -40,11 +40,7 @@ const resolvers = {
 
   UserMutation: {
     createUser(root, args) {
-      let user = new User({name: args.name, email: args.email});
-      return user.save().then(_user => {
-        console.log("Inserted user", _user);
-        return _user;
-      });
+      return User.createNew({name: args.name, email: args.email});
     },
   },
 };
