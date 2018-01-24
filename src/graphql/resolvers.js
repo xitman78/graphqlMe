@@ -1,4 +1,6 @@
 const User = require("../models/user");
+const {pubsub} = require("./socket");
+const { withFilter } = require("graphql-subscriptions");
 
 const resolvers = {
 
@@ -40,9 +42,30 @@ const resolvers = {
 
   UserMutation: {
     createUser(root, args) {
-      return User.createNew({name: args.name, email: args.email});
+      return User.createNew({name: args.name, email: args.email}).then((user) => {
+        console.log("User created - publish subscription");
+        pubsub.publish("userAdded", { userAdded: user });
+        return user;
+      });
     },
   },
+
+  Subscription: {
+    userAdded: {
+      resolve: (payload) => {
+        console.log("rrrrresolver--");
+        return payload;
+      },
+
+      subscribe: () => {
+        // const currentUserId = getUserId(ctx)
+        // return pubSub.asyncIterator(`messageAdded-${currentUserId}`)
+        console.log("Register async iterator");
+        return pubsub.asyncIterator("userAdded");
+      },
+    },
+  },
+
 };
 
 module.exports = resolvers;

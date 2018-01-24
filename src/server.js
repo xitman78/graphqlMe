@@ -5,8 +5,11 @@ const koaBody =require ("koa-bodyparser");
 const graphqlKoa = require("apollo-server-koa").graphqlKoa;
 const graphiqlKoa = require("apollo-server-koa").graphiqlKoa;
 const mongoose = require("mongoose");
+const { execute, subscribe } = require("graphql");
 const buildDataloaders = require("./dataloader");
 const cors = require("koa-cors");
+const { createServer } = require("http");
+const { SubscriptionServer } =  require("subscriptions-transport-ws");
 
 const typeDefs = require("./graphql/typedefs");
 const resolvers = require("./graphql/resolvers");
@@ -42,12 +45,30 @@ const gqlScheme = graphqlKoa(req => {
 // koaBody is needed just for POST.
 router.post("/graphql", gqlScheme);
 router.get("/graphql", gqlScheme);
-router.get("/graphiql", graphiqlKoa({
-  endpointURL: "/graphql" // a POST endpoint that GraphiQL will make the actual requests to
-}));
+
+const graphRoute = graphiqlKoa({
+  endpointURL: "/graphql", // a POST endpoint that GraphiQL will make the actual requests to
+  subscriptionsEndpoint: `ws://localhost:${PORT}/subscriptions`
+});
+
+router.get("/graphiql", graphRoute);
 
 app.use(router.routes());
 app.use(router.allowedMethods());
-app.listen(PORT, () => {
+
+const ws = createServer(app.callback());
+
+ws.listen(PORT, () => {
   console.log("Listeing on port " + PORT);
+
+  new SubscriptionServer({
+    execute,
+    subscribe,
+    schema: gqlScheme,
+    onConnect: () => {console.log("On Connect ----")},
+  }, {
+    server: ws,
+    path: "/subscriptions",
+  });
+
 });
