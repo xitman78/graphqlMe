@@ -43,7 +43,7 @@ const resolvers = {
   UserMutation: {
     createUser(root, args) {
       return User.createNew({name: args.name, email: args.email}).then((user) => {
-        console.log("User created - publish subscription". user);
+        console.log("User created - publish subscription", user);
         pubsub.publish("userAdded", { userAdded: user });
         return user;
       });
@@ -52,10 +52,10 @@ const resolvers = {
 
   Subscription: {
     userAdded: {
-      resolve: (payload) => {
-        console.log("rrrrresolver--", payload);
-        return payload.userAdded;
-      },
+      // resolve: (payload) => {
+      //   console.log("rrrrresolver--", payload);
+      //   return payload.userAdded;
+      // },
 
       subscribe: () => {
         // const currentUserId = getUserId(ctx)
