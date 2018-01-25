@@ -33,18 +33,19 @@ const PORT = 3030;
 app.use(cors());
 app.use(koaBody());
 
-const gqlScheme = graphqlKoa(req => {
-  return {
-    schema: myGraphQLSchema,
-    context: {
-      dataloaders: buildDataloaders(),
-    },
-  };
-});
+const gqlRoute = (ctx, next) => graphqlKoa({
+  schema: myGraphQLSchema,
+  rootValue: {
+    ctx,
+  },
+  context: {
+    dataloaders: buildDataloaders(),
+  },
+})(ctx, next);
 
 // koaBody is needed just for POST.
-router.post("/graphql", gqlScheme);
-router.get("/graphql", gqlScheme);
+router.post("/graphql", gqlRoute);
+router.get("/graphql", gqlRoute);
 
 const graphRoute = graphiqlKoa({
   endpointURL: "/graphql", // a POST endpoint that GraphiQL will make the actual requests to
@@ -53,8 +54,7 @@ const graphRoute = graphiqlKoa({
 
 router.get("/graphiql", graphRoute);
 
-app.use(router.routes());
-app.use(router.allowedMethods());
+app.use(router.routes()).use(router.allowedMethods());
 
 const ws = createServer(app.callback());
 
@@ -64,8 +64,14 @@ ws.listen(PORT, () => {
   new SubscriptionServer({
     execute,
     subscribe,
-    schema: gqlScheme,
-    onConnect: () => {console.log("On Connect ----")},
+    schema: myGraphQLSchema,
+    onConnect: () => {console.log("On Connect ----");},
+    onUnsubscribe: (a, b) => {
+      console.log('Unsubscribing');
+    },
+    onDisconnect: (a, b) => {
+      console.log('Disconnecting');
+    },
   }, {
     server: ws,
     path: "/subscriptions",
