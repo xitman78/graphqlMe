@@ -23,7 +23,7 @@
     "koa-bodyparser": "^4.2.0",
     "koa-cors": "0.0.16",
     "koa-router": "^7.3.0",
-    "mongoose": "^5.0.0",
+    "mongoose": "^5.7.5",
     "subscriptions-transport-ws": "^0.9.5"
   },
   "devDependencies": {
